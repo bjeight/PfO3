@@ -1,7 +1,9 @@
-use std::{collections::{HashMap, HashSet}, iter::zip, cmp::Ordering};
+use std::{collections::HashMap, iter::zip, cmp::Ordering};
 
 use pyo3::prelude::*;
-use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyReadonlyArray3, ndarray::{Array, Array2, Dim, AssignElem, ArrayBase, OwnedRepr}, ToPyArray, PyArray};
+use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyReadonlyArray3,
+    ndarray::{Array, Dim, AssignElem, ArrayBase, OwnedRepr},
+    ToPyArray, PyArray};
 
 
 #[pyfunction]
@@ -22,16 +24,6 @@ fn any_missing(a: PyReadonlyArray1<i8>) -> bool {
         }
     }
     false
-}
-
-#[pyfunction]
-fn temp(a: PyReadonlyArray2<i8>) -> Vec<i64> {
-    let temp = a.shape();
-    let mut shape = vec![];
-    for i in temp {
-        shape.push(*i as i64)
-    }
-    shape
 }
 
 #[pyfunction]
@@ -58,7 +50,7 @@ fn distinct_frequencies(a: PyReadonlyArray2<i8>) -> Vec<f64> {
                 return true
             }
         }
-        return false
+        false
     }
 
     fn total_missing(v: &Vec<i8>) -> i64 {
@@ -96,7 +88,7 @@ fn distinct_frequencies(a: PyReadonlyArray2<i8>) -> Vec<f64> {
     let mut m_full_hap: HashMap::<Vec<i8>, f64> = HashMap::new();
     let mut m_miss_hap: HashMap::<Vec<i8>, f64> = HashMap::new();
     // let mut leftovers: Vec<Vec<i8>> = vec![vec![]];
-    for row in aa.axis_iter(numpy::ndarray::Axis(0)) {
+    for row in aa.axis_iter(numpy::ndarray::Axis(1)) {
         let rs = row.to_vec();
         if !any_missing(&rs) { // if there are no missing values they can be added to our map
             m_full_hap.entry(rs)
