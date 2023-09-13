@@ -1,4 +1,4 @@
-use std::{collections::HashMap, iter::zip, cmp::Ordering};
+use std::{collections::{HashMap, HashSet}, iter::zip, cmp::Ordering};
 
 use pyo3::prelude::*;
 use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyReadonlyArray3,
@@ -14,6 +14,39 @@ fn is_polymorphic(a: PyReadonlyArray1<i8>) -> bool {
         }
     }
     false
+}
+
+
+#[pyfunction]
+fn filter_site_polymorphic<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>) -> &'a PyArray<i8, Dim<[usize; 2]>> {
+    let aa = a.as_array();
+    let mut b: ArrayBase<OwnedRepr<i8>, Dim<[usize; 2]>> = Array::zeros((0, aa.shape()[1]));
+    for row in aa.axis_iter(numpy::ndarray::Axis(0)) {
+        let mut hs: HashSet<i8> = HashSet::new();
+        for x in row {
+            if *x > -1 {
+                hs.insert(*x);
+            }
+        }
+        if hs.len() > 1 {
+            b.push_row(row).unwrap();
+        }
+    }
+    b.to_pyarray(py)
+}
+
+#[pyfunction]
+#[pyo3(signature = (a, threshold = 0.1))]
+fn filter_sample_missing<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>, threshold: f64) -> &'a PyArray<i8, Dim<[usize; 2]>> {
+    let aa = a.as_array();
+    let mut b: ArrayBase<OwnedRepr<i8>, Dim<[usize; 2]>> = Array::zeros((aa.shape()[0], 0));
+    for col in aa.axis_iter(numpy::ndarray::Axis(1)) {
+        let p = col.map(|x| (*x == -1) as i64).into_iter().sum::<i64>() as f64 / col.len() as f64;
+        if p <= threshold {
+            b.push_column(col).unwrap();
+        }
+    }
+    b.to_pyarray(py)
 }
 
 #[pyfunction]
@@ -153,7 +186,6 @@ fn return_array(py: Python<'_>, s: usize) -> &PyArray<i8, Dim<[usize; 2]>> {
 }
 
 #[pyfunction]
-#[pyo3(signature = (a))]
 fn haploidify_samples<'a>(py: Python<'a>, a: PyReadonlyArray3<'a, i8>) -> &'a PyArray<i8, Dim<[usize; 2]>> {
     let aa = a.as_array();
     let shape = aa.shape();
@@ -182,6 +214,8 @@ fn haploidify_samples<'a>(py: Python<'a>, a: PyReadonlyArray3<'a, i8>) -> &'a Py
 #[pymodule]
 fn PfO3(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(is_polymorphic, m)?)?;
+    m.add_function(wrap_pyfunction!(filter_site_polymorphic, m)?)?;
+    m.add_function(wrap_pyfunction!(filter_sample_missing, m)?)?;
     m.add_function(wrap_pyfunction!(any_missing, m)?)?;
     m.add_function(wrap_pyfunction!(row_iter, m)?)?;
     m.add_function(wrap_pyfunction!(return_array, m)?)?;
