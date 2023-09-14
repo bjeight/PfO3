@@ -16,7 +16,6 @@ fn is_polymorphic(a: PyReadonlyArray1<i8>) -> bool {
     false
 }
 
-
 #[pyfunction]
 fn filter_site_polymorphic<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>) -> &'a PyArray<i8, Dim<[usize; 2]>> {
     let aa = a.as_array();
@@ -75,7 +74,7 @@ fn row_iter(a: PyReadonlyArray2<i8>) -> i32 {
 }
 
 #[pyfunction]
-fn distinct_frequencies(a: PyReadonlyArray2<i8>) -> Vec<f64> {
+fn distinct_counts(a: PyReadonlyArray2<i8>) -> Vec<f64> {
 
     fn any_missing(s: &Vec<i8>) -> bool {
         for i in s {
@@ -219,7 +218,7 @@ fn PfO3(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(any_missing, m)?)?;
     m.add_function(wrap_pyfunction!(row_iter, m)?)?;
     m.add_function(wrap_pyfunction!(return_array, m)?)?;
-    m.add_function(wrap_pyfunction!(distinct_frequencies, m)?)?;
+    m.add_function(wrap_pyfunction!(distinct_counts, m)?)?;
     m.add_function(wrap_pyfunction!(haploidify_samples, m)?)?;
     Ok(())
 }
