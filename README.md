@@ -6,7 +6,7 @@ PfO3 is a python module written in rust to process numpy ndarrays (e.g. the "cal
 
 To build and install PfO3 using the source code in this repository, you must first install [rust](https://www.rust-lang.org/tools/install) and [maturin](https://www.maturin.rs/). 
 
-Then you can install the python package localling using the following commands:
+Then you can install the python package locally using the following commands:
 
 ```sh
 ❯ git clone https://github.com/bjeight/PfO3.git
