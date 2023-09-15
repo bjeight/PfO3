@@ -35,6 +35,24 @@ fn filter_site_polymorphic<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>) -> &
 }
 
 #[pyfunction]
+fn index_site_polymorphic<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>) -> Vec<i32> {
+    let aa = a.as_array();
+    let mut v: Vec<i32> = vec![];
+    for (i, row) in aa.axis_iter(numpy::ndarray::Axis(0)).enumerate() {
+        let mut hs: HashSet<i8> = HashSet::new();
+        for x in row {
+            if *x > -1 {
+                hs.insert(*x);
+            }
+        }
+        if hs.len() > 1 {
+            v.push(i as i32);
+        }
+    }
+    v
+}
+
+#[pyfunction]
 #[pyo3(signature = (a, threshold = 0.1))]
 fn filter_sample_missing<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>, threshold: f64) -> &'a PyArray<i8, Dim<[usize; 2]>> {
     let aa = a.as_array();
@@ -214,6 +232,7 @@ fn haploidify_samples<'a>(py: Python<'a>, a: PyReadonlyArray3<'a, i8>) -> &'a Py
 fn PfO3(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(is_polymorphic, m)?)?;
     m.add_function(wrap_pyfunction!(filter_site_polymorphic, m)?)?;
+    m.add_function(wrap_pyfunction!(index_site_polymorphic, m)?)?;
     m.add_function(wrap_pyfunction!(filter_sample_missing, m)?)?;
     m.add_function(wrap_pyfunction!(any_missing, m)?)?;
     m.add_function(wrap_pyfunction!(row_iter, m)?)?;
