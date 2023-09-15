@@ -2,6 +2,8 @@
 
 PfO3 is a python module written in rust to process numpy ndarrays (e.g. the "call_genotype" variable of the `malariagen-data` callset) quickly.
 
+**THIS MODULE IS A WORK IN PROGRESS AND IS NOT PRODUCTION-READY**
+
 ## Requirements
 
 To build and install PfO3 using the source code in this repository, you must first install [rust](https://www.rust-lang.org/tools/install) and [maturin](https://www.maturin.rs/). 
