@@ -43,7 +43,7 @@ fn filter_site_polymorphic<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>) -> &
     b.to_pyarray(py)
 }
 
-fn _index_vec_missing(aa: ArrayBase<ViewRepr<&i8>, Dim<[usize; 2]>>, axis: usize, threshold: f64) -> Vec<i32> {
+fn _index_axis_missing(aa: ArrayBase<ViewRepr<&i8>, Dim<[usize; 2]>>, axis: usize, threshold: f64) -> Vec<i32> {
     let mut idx: Vec<i32> = vec![];
     for (i, v) in aa.axis_iter(numpy::ndarray::Axis(axis)).enumerate() {
         let mut m: i64 = 0;
@@ -63,7 +63,7 @@ fn _index_vec_missing(aa: ArrayBase<ViewRepr<&i8>, Dim<[usize; 2]>>, axis: usize
 #[pyo3(signature = (a, threshold = 0.1))]
 fn index_sample_missing<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>, threshold: f64) -> Vec<i32> {
     let aa = a.as_array();
-    let idx = _index_vec_missing(aa, 1, threshold);
+    let idx = _index_axis_missing(aa, 1, threshold);
     idx
 }
 
@@ -71,7 +71,7 @@ fn index_sample_missing<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>, thresho
 #[pyo3(signature = (a, threshold = 0.1))]
 fn filter_sample_missing<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>, threshold: f64) -> &'a PyArray<i8, Dim<[usize; 2]>> {
     let aa = a.as_array();
-    let idx = _index_vec_missing(aa, 1, threshold);
+    let idx = _index_axis_missing(aa, 1, threshold);
     let idx_hs: HashSet<i32> = idx.into_iter().collect();
     let mut b: ArrayBase<OwnedRepr<i8>, Dim<[usize; 2]>> = Array::zeros((aa.shape()[0], 0));
     for (i, v) in aa.axis_iter(numpy::ndarray::Axis(1)).enumerate() {
@@ -86,7 +86,7 @@ fn filter_sample_missing<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>, thresh
 #[pyo3(signature = (a, threshold = 0.1))]
 fn index_site_missing<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>, threshold: f64) -> Vec<i32> {
     let aa = a.as_array();
-    let idx = _index_vec_missing(aa, 0, threshold);
+    let idx = _index_axis_missing(aa, 0, threshold);
     idx
 }
 
@@ -94,7 +94,7 @@ fn index_site_missing<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>, threshold
 #[pyo3(signature = (a, threshold = 0.1))]
 fn filter_site_missing<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>, threshold: f64) -> &'a PyArray<i8, Dim<[usize; 2]>> {
     let aa = a.as_array();
-    let idx = _index_vec_missing(aa, 0, threshold);
+    let idx = _index_axis_missing(aa, 0, threshold);
     let idx_hs: HashSet<i32> = idx.into_iter().collect();
     let mut b: ArrayBase<OwnedRepr<i8>, Dim<[usize; 2]>> = Array::zeros((0, aa.shape()[1]));
     for (i, v) in aa.axis_iter(numpy::ndarray::Axis(0)).enumerate() {
@@ -210,12 +210,6 @@ fn distinct_counts(a: PyReadonlyArray2<i8>) -> Vec<f64> {
     counts
 }
 
-#[pyfunction]
-#[pyo3(signature = (s))]
-fn return_array(py: Python<'_>, s: usize) -> &PyArray<i8, Dim<[usize; 2]>> {
-    let a = Array::zeros((s, s));
-    a.to_pyarray(py)
-}
 
 #[pyfunction]
 fn haploidify_samples<'a>(py: Python<'a>, a: PyReadonlyArray3<'a, i8>) -> &'a PyArray<i8, Dim<[usize; 2]>> {
