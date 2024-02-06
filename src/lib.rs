@@ -5,10 +5,13 @@ use numpy::{PyReadonlyArray2, PyReadonlyArray3,
     ndarray::{Array, Dim, AssignElem, ArrayBase, OwnedRepr, ViewRepr},
     ToPyArray, PyArray};
 
+mod haplotypes;
 
 mod garud;
 use crate::garud::*;
 
+mod ehh;
+use crate::ehh::*;
 
 fn _index_site_polymorphic(aa: ArrayBase<ViewRepr<&i8>, Dim<[usize; 2]>>) -> Vec<i32> {
     let mut idx: Vec<i32> = vec![];
@@ -47,17 +50,17 @@ fn filter_site_polymorphic<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>) -> &
     b.to_pyarray(py)
 }
 
-fn _index_axis_missing(aa: ArrayBase<ViewRepr<&i8>, Dim<[usize; 2]>>, axis: usize, threshold: f64) -> Vec<i32> {
-    let mut idx: Vec<i32> = vec![];
+fn _index_axis_missing(aa: ArrayBase<ViewRepr<&i8>, Dim<[usize; 2]>>, axis: usize, threshold: f64) -> Vec<u32> {
+    let mut idx: Vec<u32> = vec![];
     for (i, v) in aa.axis_iter(numpy::ndarray::Axis(axis)).enumerate() {
-        let mut m: i64 = 0;
+        let mut m: u64 = 0;
         for x in v {
             if *x < 0 {
                 m += 1;
             }
         }
         if m as f64 / v.len() as f64 <= threshold {
-            idx.push(i as i32);
+            idx.push(i as u32);
         }
     }
     idx
@@ -65,7 +68,7 @@ fn _index_axis_missing(aa: ArrayBase<ViewRepr<&i8>, Dim<[usize; 2]>>, axis: usiz
 
 #[pyfunction]
 #[pyo3(signature = (a, threshold = 0.1))]
-fn index_sample_missing<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>, threshold: f64) -> Vec<i32> {
+fn index_sample_missing<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>, threshold: f64) -> Vec<u32> {
     let aa = a.as_array();
     let idx = _index_axis_missing(aa, 1, threshold);
     idx
@@ -76,10 +79,10 @@ fn index_sample_missing<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>, thresho
 fn filter_sample_missing<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>, threshold: f64) -> &'a PyArray<i8, Dim<[usize; 2]>> {
     let aa = a.as_array();
     let idx = _index_axis_missing(aa, 1, threshold);
-    let idx_hs: HashSet<i32> = idx.into_iter().collect();
+    let idx_hs: HashSet<u32> = idx.into_iter().collect();
     let mut b: ArrayBase<OwnedRepr<i8>, Dim<[usize; 2]>> = Array::zeros((aa.shape()[0], 0));
     for (i, v) in aa.axis_iter(numpy::ndarray::Axis(1)).enumerate() {
-        if idx_hs.contains(&(i as i32)) {
+        if idx_hs.contains(&(i as u32)) {
             b.push(numpy::ndarray::Axis(1), v).unwrap();
         }
     }
@@ -88,7 +91,7 @@ fn filter_sample_missing<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>, thresh
 
 #[pyfunction]
 #[pyo3(signature = (a, threshold = 0.1))]
-fn index_site_missing<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>, threshold: f64) -> Vec<i32> {
+fn index_site_missing<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>, threshold: f64) -> Vec<u32> {
     let aa = a.as_array();
     let idx = _index_axis_missing(aa, 0, threshold);
     idx
@@ -99,10 +102,10 @@ fn index_site_missing<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>, threshold
 fn filter_site_missing<'a>(py: Python<'a>, a: PyReadonlyArray2<'a, i8>, threshold: f64) -> &'a PyArray<i8, Dim<[usize; 2]>> {
     let aa = a.as_array();
     let idx = _index_axis_missing(aa, 0, threshold);
-    let idx_hs: HashSet<i32> = idx.into_iter().collect();
+    let idx_hs: HashSet<u32> = idx.into_iter().collect();
     let mut b: ArrayBase<OwnedRepr<i8>, Dim<[usize; 2]>> = Array::zeros((0, aa.shape()[1]));
     for (i, v) in aa.axis_iter(numpy::ndarray::Axis(0)).enumerate() {
-        if idx_hs.contains(&(i as i32)) {
+        if idx_hs.contains(&(i as u32)) {
             b.push(numpy::ndarray::Axis(0), v).unwrap();
         }
     }
